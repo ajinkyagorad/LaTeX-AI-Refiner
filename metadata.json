@@ -1,0 +1,5 @@
+{
+  "name": "LaTeX AI Refiner",
+  "description": "A 3-column LaTeX editor that uses AI to refine submissions based on reviewer comments, author attempts, and factual data.",
+  "requestFramePermissions": []
+}

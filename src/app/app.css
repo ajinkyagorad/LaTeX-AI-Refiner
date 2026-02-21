@@ -1,0 +1,31 @@
+.flex-3\/4 {
+  flex: 3;
+}
+
+.flex-1\/4 {
+  flex: 1;
+}
+
+textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 10px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Material icon sizing fix */
+mat-icon {
+  width: auto !important;
+  height: auto !important;
+  font-size: 20px !important;
+}

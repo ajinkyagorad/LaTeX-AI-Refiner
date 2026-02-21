@@ -1,0 +1,141 @@
+<main class="h-screen w-full bg-[#121212] text-zinc-300 font-sans flex flex-col overflow-hidden">
+  <!-- Header -->
+  <header class="h-14 border-b border-zinc-800 flex items-center justify-between px-6 bg-[#18181b]">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center">
+        <mat-icon class="text-white scale-75">edit_note</mat-icon>
+      </div>
+      <h1 class="text-lg font-medium tracking-tight text-zinc-100">LaTeX AI Refiner</h1>
+    </div>
+    <div class="flex items-center gap-4">
+      @if (error()) {
+        <span class="text-xs text-red-400 bg-red-400/10 px-3 py-1 rounded border border-red-400/20">
+          {{ error() }}
+        </span>
+      }
+      <button 
+        (click)="generateRefined()"
+        [disabled]="isGenerating()"
+        class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-md text-sm font-medium transition-all shadow-lg shadow-emerald-900/20"
+      >
+        @if (isGenerating()) {
+          <mat-icon class="animate-spin scale-75">sync</mat-icon>
+          Refining...
+        } @else {
+          <mat-icon class="scale-75">auto_awesome</mat-icon>
+          Refine LaTeX
+        }
+      </button>
+    </div>
+  </header>
+
+  <!-- Editor Grid -->
+  <div class="flex-1 grid grid-cols-3 gap-px bg-zinc-800 overflow-hidden" [formGroup]="editorForm">
+    
+    <!-- Column 1: Submission & Reviewer -->
+    <div class="flex flex-col h-full bg-[#121212]">
+      <div class="flex-3/4 flex flex-col border-b border-zinc-800">
+        <div class="px-4 py-2 bg-zinc-900/50 flex items-center justify-between border-b border-zinc-800">
+          <span class="text-[10px] uppercase tracking-widest font-semibold text-zinc-500">Original Submission</span>
+          <mat-icon class="text-zinc-600 scale-75">description</mat-icon>
+        </div>
+        <textarea 
+          formControlName="originalLatex"
+          class="flex-1 p-4 bg-transparent outline-none resize-none font-mono text-xs leading-relaxed text-zinc-400 focus:text-zinc-200 transition-colors"
+          placeholder="Paste original LaTeX here..."
+        ></textarea>
+      </div>
+      <div class="flex-1/4 flex flex-col bg-zinc-900/20">
+        <div class="px-4 py-2 bg-zinc-900/50 flex items-center justify-between border-b border-zinc-800">
+          <span class="text-[10px] uppercase tracking-widest font-semibold text-zinc-500">Reviewer Comments</span>
+          <mat-icon class="text-zinc-600 scale-75">comment</mat-icon>
+        </div>
+        <textarea 
+          formControlName="reviewerComments"
+          class="flex-1 p-4 bg-transparent outline-none resize-none font-sans text-xs italic text-zinc-500 focus:text-zinc-300 transition-colors"
+          placeholder="Enter reviewer feedback..."
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Column 2: Author Attempt & Factual Info -->
+    <div class="flex flex-col h-full bg-[#121212]">
+      <div class="flex-3/4 flex flex-col border-b border-zinc-800">
+        <div class="px-4 py-2 bg-zinc-900/50 flex items-center justify-between border-b border-zinc-800">
+          <span class="text-[10px] uppercase tracking-widest font-semibold text-zinc-500">Author's Iteration</span>
+          <mat-icon class="text-zinc-600 scale-75">history_edu</mat-icon>
+        </div>
+        <textarea 
+          formControlName="authorAttempt"
+          class="flex-1 p-4 bg-transparent outline-none resize-none font-mono text-xs leading-relaxed text-zinc-400 focus:text-zinc-200 transition-colors"
+          placeholder="Your current attempt to address comments..."
+        ></textarea>
+      </div>
+      <div class="flex-1/4 flex flex-col bg-zinc-900/20">
+        <div class="px-4 py-2 bg-zinc-900/50 flex items-center justify-between border-b border-zinc-800">
+          <span class="text-[10px] uppercase tracking-widest font-semibold text-zinc-500">Factual Information</span>
+          <mat-icon class="text-zinc-600 scale-75">info</mat-icon>
+        </div>
+        <textarea 
+          formControlName="factualInfo"
+          class="flex-1 p-4 bg-transparent outline-none resize-none font-sans text-xs text-zinc-500 focus:text-zinc-300 transition-colors"
+          placeholder="Additional data, experiments, or facts..."
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Column 3: AI Refined Output -->
+    <div id="result-column" class="flex flex-col h-full bg-[#161618] border-l border-zinc-800 shadow-2xl">
+      <div class="px-4 py-2 bg-emerald-900/10 flex items-center justify-between border-b border-zinc-800">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] uppercase tracking-widest font-semibold text-emerald-500">AI Refined Version</span>
+          @if (isGenerating()) {
+            <span class="flex h-2 w-2 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+          }
+        </div>
+        <div class="flex items-center gap-2">
+          <button 
+            (click)="copyToClipboard()"
+            [disabled]="!refinedLatex()"
+            class="p-1 hover:bg-zinc-800 rounded transition-colors disabled:opacity-30"
+            title="Copy to clipboard"
+          >
+            <mat-icon class="text-zinc-400 scale-75">content_copy</mat-icon>
+          </button>
+          <mat-icon class="text-emerald-600 scale-75">auto_fix_high</mat-icon>
+        </div>
+      </div>
+      <div class="flex-1 relative overflow-hidden">
+        @if (!refinedLatex() && !isGenerating()) {
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-zinc-600 p-8 text-center">
+            <mat-icon class="text-4xl mb-4 opacity-20">auto_awesome</mat-icon>
+            <p class="text-sm">Click "Refine LaTeX" to generate the final version.</p>
+            <p class="text-xs mt-2 opacity-60 italic">The AI will merge all inputs into a neat, addressed version.</p>
+          </div>
+        }
+        <textarea 
+          readonly
+          [value]="refinedLatex()"
+          class="w-full h-full p-6 bg-transparent outline-none resize-none font-mono text-xs leading-relaxed text-emerald-50/80 selection:bg-emerald-500/30"
+          placeholder="The refined LaTeX will appear here..."
+        ></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="h-8 border-t border-zinc-800 bg-[#18181b] flex items-center justify-between px-6 text-[10px] text-zinc-500 uppercase tracking-widest">
+    <div class="flex items-center gap-4">
+      <span>Status: {{ isGenerating() ? 'Processing' : 'Idle' }}</span>
+      <span class="w-px h-3 bg-zinc-800"></span>
+      <span>Gemini 3.1 Pro</span>
+    </div>
+    <div>
+      &copy; 2024 LaTeX AI Editor
+    </div>
+  </footer>
+</main>
